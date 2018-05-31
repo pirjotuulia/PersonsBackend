@@ -25,7 +25,7 @@ let persons = [
 ]
 
 app.get('/', (request, response) => {
-    response.send('hah?')
+    response.send('wow')
 })
 
 app.get('/api/persons', (request, response) => {
