@@ -23,9 +23,9 @@ mongoose.connect(url, { useNewUrlParser: true })
 // })
 let nextPersonId;
 
-app.get('/', (request, response) => {
-    response.send('wow')
-})
+// app.get('/', (request, response) => {
+//     response.send('wow')
+// })
 
 app.get('/api/persons', (request, response) => {
     Person
@@ -38,21 +38,27 @@ app.get('/api/persons', (request, response) => {
 
 app.get('/api/persons/:id', (request, response) => {
     Person
-        .findOne({ 'id': request.params.id })
+        .findOne({ 'id': request.params.id })//tämä on toteutettu niin, että se hakee "oman" id:n, ei mongon id:tä
         .then(person => {
-            response.json(Person.format(person))
+            if (person) {
+                response.json(Person.format(person))
+            } else {
+                response.status(404).end()
+            }
         })
         .catch(error => {
             console.log(error)
+            response.status(400).send({ error: 'malformatted id' })
         })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
     Person
-        .deleteOne({ 'id': request.params.id })
+        .deleteOne({ 'id': request.params.id })//tämä on toteutettu niin, että se hakee "oman" id:n, ei mongon id:tä
         .then(response.status(200).end())
         .catch(error => {
             console.log(error)
+            response.status(404).end()
         })
 })
 
@@ -68,11 +74,25 @@ app.post('/api/persons', (request, response) => {
         number: body.number,
         id: nextPersonId++
     })
-
-    person
-        .save()
-        .then(savedPerson => {
-            response.json(Person.format(savedPerson))
+    Person
+        .find({ name: body.name })
+        .then(result => {
+            if (result && result.length > 0) {
+                return response.status(400).json({ error: 'name must be unique' })
+            }
+        })
+        .then(result => {
+            if (!result||!result.statusCode === 400) {
+                person
+                    .save()
+                    .then(savedPerson => {
+                        response.json(Person.format(savedPerson))
+                    })
+                    .catch(error => {
+                        console.log(error)
+                        response.status(400).end()
+                    })
+            }
         })
         .catch(error => {
             console.log(error)
@@ -81,14 +101,14 @@ app.post('/api/persons', (request, response) => {
 
 app.put('/api/persons/:id', (request, response) => {
     const body = request.body
-    Person
+    Person //tämä on toteutettu niin, että se hakee "oman" id:n, ei mongon id:tä
         .updateOne({ 'id': request.params.id }, { $set: { 'name': body.name, 'number': body.number } })
         .then(savedPerson => {
-			console.log(Person.format(savedPerson))
             response.json(Person.format(savedPerson))
         })
         .catch(error => {
             console.log(error)
+            response.status(404).end()
         })
 })
 
@@ -97,12 +117,16 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
 
-// app.get('/info', (request, response) => {
-//     const amount = persons.length
-//     const date = new Date()
-//     const info = `puhelinluettelossa on ${amount} henkilön tiedot <br> ${date}`
-//     response.send(info)
-// })
+app.get('/info', (request, response) => {
+    Person.count({}, function (err, c) {
+        return c
+    }).then(amount => {
+        const date = new Date()
+        const info = `Puhelinluettelossa on ${amount} henkilön tiedot <br> ${date}`
+        response.send(info)
+    })
+
+})
 
 // app.get('/api/persons/:id', (request, response) => {
 //     const id = Number(request.params.id)
