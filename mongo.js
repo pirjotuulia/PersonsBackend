@@ -25,7 +25,6 @@ const person = new Person({
 //     })
 
 if (process.argv[2]) {
-    console.log(process.argv[2])
     person.name = process.argv[2]
     person.number = process.argv[3]
     console.log("lisätään henkilö " + person.name + " numero "+ person.number+" luetteloon")
