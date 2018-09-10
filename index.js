@@ -12,7 +12,7 @@ app.use(bodyParser.json())
 morgan.token('response', function (req, res) { return JSON.stringify(req.body) })
 app.use(morgan(':method :url :response :status :res[content-length] - :response-time ms'))
 
-const url = 'mongodb://fullstack:salainen1@ds249992.mlab.com:49992/fullstackkanta'
+const url = 'mongodb://username:password@ds249992.mlab.com:49992/fullstackkanta'
 
 mongoose.connect(url, { useNewUrlParser: true })
 
