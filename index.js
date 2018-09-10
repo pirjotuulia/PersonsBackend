@@ -50,7 +50,7 @@ app.get('/api/persons/:id', (request, response) => {
 app.delete('/api/persons/:id', (request, response) => {
     Person
         .deleteOne({ 'id': request.params.id })
-        .then(response.status(204).end())
+        .then(response.status(200).end())
         .catch(error => {
             console.log(error)
         })
@@ -72,6 +72,19 @@ app.post('/api/persons', (request, response) => {
     person
         .save()
         .then(savedPerson => {
+            response.json(Person.format(savedPerson))
+        })
+        .catch(error => {
+            console.log(error)
+        })
+})
+
+app.put('/api/persons/:id', (request, response) => {
+    const body = request.body
+    Person
+        .updateOne({ 'id': request.params.id }, { $set: { 'name': body.name, 'number': body.number } })
+        .then(savedPerson => {
+			console.log(Person.format(savedPerson))
             response.json(Person.format(savedPerson))
         })
         .catch(error => {
