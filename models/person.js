@@ -20,7 +20,7 @@ personSchema.statics.format = (person) => {
     return {
         name: person.name,
         number: person.number,
-        id: person.id
+        id: person._id
     }
 }
 

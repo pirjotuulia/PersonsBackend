@@ -16,29 +16,17 @@ const url = process.env.MONGODB_URI
 
 mongoose.connect(url, { useNewUrlParser: true })
 
-// const Person = mongoose.model('Person', {
-//     name: String,
-//     number: String,
-//     id: Number
-// })
-let nextPersonId
-
-// app.get('/', (request, response) => {
-//     response.send('wow')
-// })
-
 app.get('/api/persons', (request, response) => {
     Person
         .find({}, { __v: 0 })
         .then(people => {
-            nextPersonId = people.length + 1
             response.json(people.map(Person.format))
         })
 })
 
 app.get('/api/persons/:id', (request, response) => {
     Person
-        .findOne({ 'id': request.params.id })//tämä on toteutettu niin, että se hakee "oman" id:n, ei mongon id:tä
+        .findById(request.params.id)
         .then(person => {
             if (person) {
                 response.json(Person.format(person))
@@ -54,11 +42,12 @@ app.get('/api/persons/:id', (request, response) => {
 
 app.delete('/api/persons/:id', (request, response) => {
     Person
-        .deleteOne({ 'id': request.params.id })//tämä on toteutettu niin, että se hakee "oman" id:n, ei mongon id:tä
-        .then(response.status(200).end())
+        .findByIdAndRemove(request.params.id)
+        .then(result => {
+            response.status(204).end()
+        })
         .catch(error => {
-            console.log(error)
-            response.status(404).end()
+            response.status(400).send({ error: 'malformatted id' })
         })
 })
 
@@ -71,8 +60,7 @@ app.post('/api/persons', (request, response) => {
 
     const person = new Person({
         name: body.name,
-        number: body.number,
-        id: nextPersonId++
+        number: body.number
     })
     Person
         .find({ name: body.name })
@@ -82,7 +70,7 @@ app.post('/api/persons', (request, response) => {
             }
         })
         .then(result => {
-            if (!result||!result.statusCode === 400) {
+            if (!result || !result.statusCode === 400) {
                 person
                     .save()
                     .then(savedPerson => {
@@ -101,14 +89,19 @@ app.post('/api/persons', (request, response) => {
 
 app.put('/api/persons/:id', (request, response) => {
     const body = request.body
-    Person //tämä on toteutettu niin, että se hakee "oman" id:n, ei mongon id:tä
-        .updateOne({ 'id': request.params.id }, { $set: { 'name': body.name, 'number': body.number } })
-        .then(savedPerson => {
-            response.json(Person.format(savedPerson))
+    const person = {
+        name: body.name,
+        number: body.number
+    }
+    console.log(person)
+    Person
+        .findByIdAndUpdate(request.params.id, person, { new: true })
+        .then(updatedPerson => {
+            response.json(Person.format(updatedPerson))
         })
         .catch(error => {
             console.log(error)
-            response.status(404).end()
+            response.status(400).send({ error: 'malformatted id' })
         })
 })
 
