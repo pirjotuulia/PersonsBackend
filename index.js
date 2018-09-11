@@ -9,7 +9,7 @@ const mongoose = require('mongoose')
 app.use(express.static('build'))
 app.use(cors())
 app.use(bodyParser.json())
-morgan.token('response', function (req, res) { return JSON.stringify(req.body) })
+morgan.token('response', function (req) { return JSON.stringify(req.body) })
 app.use(morgan(':method :url :response :status :res[content-length] - :response-time ms'))
 
 const url = process.env.MONGODB_URI
@@ -21,7 +21,7 @@ mongoose.connect(url, { useNewUrlParser: true })
 //     number: String,
 //     id: Number
 // })
-let nextPersonId;
+let nextPersonId
 
 // app.get('/', (request, response) => {
 //     response.send('wow')
