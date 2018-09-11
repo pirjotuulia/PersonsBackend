@@ -1,6 +1,10 @@
 const mongoose = require('mongoose')
 
-const url = 'mongodb://username:password@ds249992.mlab.com:49992/fullstackkanta'
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config()
+}
+
+const url = process.env.MONGODB_URI
 
 mongoose.connect(url, { useNewUrlParser: true })
 
@@ -20,6 +24,6 @@ personSchema.statics.format = (person) => {
     }
 }
 
-const Person = mongoose.model('Person',personSchema)
+const Person = mongoose.model('Person', personSchema)
 
 module.exports = Person
